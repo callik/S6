@@ -11,9 +11,14 @@
  * @return un pointeur vers l'inode
  **/
 inode_t *inode_creer(){
+    int i = 0;
 	inode_t *inode = (inode_t*)malloc(sizeof(inode_t));
 	inode->nom = (char*)malloc(sizeof(char)*(MAX_TAILLE));
 	inode->adr = (off_t*)malloc(sizeof(off_t)*MAX_TAILLE_BLOC);
+	while (i < MAX_ADR){
+	    inode->adr[i] = -1;
+	       i++;
+	}
 	inode->taille = 0;
 	return inode;
 }
@@ -45,7 +50,7 @@ void inode_afficher(inode_t *i){
 		printf("Nom: %s \n", i->nom);
 		printf("Taille de l'inode: %d \n", i->taille);
 		printf("Adresses:\n");
-		while (i->adr[c] != -1 && c < MAX_ADR)
+		while (c < MAX_ADR)
 			printf("\t %d \n", (int)i->adr[c]);
 	}
 }
@@ -56,7 +61,15 @@ void inode_afficher(inode_t *i){
  * @param i l'inode a sauvegarder
  **/
 void inode_sauvegarder(int fd, inode_t *i){
-    if( write(fd,&i,sizeof(inode_t))==-1){
+    if( write(fd,&i->nom,sizeof(char*))==-1){
+            perror("Erreur lors de l'ecriture de l'inode ");
+            exit(EXIT_FAILURE);
+    }
+    if ( write(fd,&i->adr,sizeof(off_t)*MAX_TAILLE_BLOC)==-1){
+            perror("Erreur lors de l'ecriture de l'inode ");
+            exit(EXIT_FAILURE);
+    }
+    if(write(fd,&i->taille,sizeof(int))==-1){
             perror("Erreur lors de l'ecriture de l'inode ");
             exit(EXIT_FAILURE);
     }
@@ -69,9 +82,18 @@ void inode_sauvegarder(int fd, inode_t *i){
  **/
 inode_t *inode_charger(int fd){
     inode_t *in = inode_creer();
-    if ( read(fd,&in,sizeof(inode_t)) == -1)
+    if ( read(fd,&in->nom,sizeof(char*)) == -1){
             perror("Erreur lors de la lecture de l'inode ");
             exit(EXIT_FAILURE);
+    }
+    if ( read(fd,&in->adr,sizeof(off_t)*MAX_TAILLE_BLOC) == -1){
+            perror("Erreur lors de la lecture de l'inode ");
+            exit(EXIT_FAILURE);
+    }
+    if ( read(fd,&in->taille,sizeof(int)) == -1){
+            perror("Erreur lors de la lecture de l'inode ");
+            exit(EXIT_FAILURE);
+    }
 	return in;
 }
  
